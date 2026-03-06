@@ -38,6 +38,62 @@
         <p style="color: #666;">검색어를 입력하고 버튼을 눌러주세요.</p>
     </div>
 </div>
+<script>
+    let bibleData = []; // 성경 데이터를 담아둘 바구니
 
+    // [명령 1] 창고(JSON 파일)에서 데이터 가져오기
+    fetch('bible_data.json')
+        .then(response => response.json())
+        .then(data => {
+            bibleData = data;
+            console.log("데이터 로드 완료!");
+        });
+
+    // [명령 2] 검색 실행하기
+    function searchStart(query) {
+        // 만약 클릭으로 들어온 검색어(query)가 있으면 그걸 쓰고, 없으면 입력창의 글자를 가져옴
+        const keyword = query || document.getElementById('userInput').value;
+        
+        // 입력창 글자도 검색어로 업데이트 (관주 클릭 시 필요)
+        document.getElementById('userInput').value = keyword;
+
+        if (!keyword) {
+            alert("검색어를 입력하세요!");
+            return;
+        }
+
+        // 데이터 바구니에서 주소나 본문에 키워드가 포함된 것만 골라내기
+        const filtered = bibleData.filter(item => 
+            item.address.includes(keyword) || item.content.includes(keyword)
+        );
+
+        displayResults(filtered);
+    }
+
+    // [명령 3] 결과를 화면(식탁)에 차려내기
+    function displayResults(results) {
+        const displayArea = document.getElementById('result-display');
+        
+        if (results.length === 0) {
+            displayArea.innerHTML = "<p>검색 결과가 없습니다.</p>";
+            return;
+        }
+
+        // 결과를 하나씩 HTML 형태로 변환해서 화면에 넣기
+        displayArea.innerHTML = results.map(item => `
+            <div class="verse-box">
+                <div class="address">${item.address}</div>
+                <div class="content">${item.content}</div>
+                <div class="references">
+                    <strong>관주:</strong>
+                    ${item.references.map(ref => `
+                        <span class="ref-chip" onclick="searchStart('${ref}')">${ref}</span>
+                    `).join('')}
+                </div>
+            </div>
+        `).join('');
+    }
+</script>
 </body>
 </html>
+
